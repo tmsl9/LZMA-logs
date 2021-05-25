@@ -256,7 +256,6 @@ public class LzmaAlone
 		return;
 	}*/
 
-	private static final String originaFile = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test.txt";
 	private static final String originalFile     = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test.txt";
 	private static final String compressedFile   = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test_comp";
 	private static final String decompressedFile = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test_decomp.txt";
