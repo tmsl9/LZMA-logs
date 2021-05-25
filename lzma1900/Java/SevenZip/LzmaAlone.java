@@ -1,5 +1,10 @@
 package SevenZip;
 
+import org.apache.commons.io.FileUtils;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 public class LzmaAlone
 {
 	/*static public class CommandLine
@@ -251,15 +256,15 @@ public class LzmaAlone
 		return;
 	}*/
 
-
 	private static final String originaFile = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test.txt";
-	private static final String compressedFile = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test_comp";
+	private static final String originalFile     = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test.txt";
+	private static final String compressedFile   = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test_comp";
 	private static final String decompressedFile = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test_decomp.txt";
 
-	public static void compressFile() throws Exception {
+	public static void compressFile(String path) throws Exception {
 
-		java.io.File inFile = new java.io.File(originaFile);
-		java.io.File outFile = new java.io.File(compressedFile);
+		java.io.File inFile = new java.io.File(path);
+		java.io.File outFile = new java.io.File(CorpusSilesia.compressedFile(path));
 
 		java.io.BufferedInputStream inStream  = new java.io.BufferedInputStream(new java.io.FileInputStream(inFile));
 		java.io.BufferedOutputStream outStream = new java.io.BufferedOutputStream(new java.io.FileOutputStream(outFile));
@@ -279,10 +284,10 @@ public class LzmaAlone
 		inStream.close();
 	}
 
-	public static void decompressFile() throws Exception {
+	public static void decompressFile(String path) throws Exception {
 
-		java.io.File inFile = new java.io.File(compressedFile);
-		java.io.File outFile = new java.io.File(decompressedFile);
+		java.io.File inFile = new java.io.File(CorpusSilesia.compressedFile(path));
+		java.io.File outFile = new java.io.File(CorpusSilesia.decompressedFile(path));
 
 		java.io.BufferedInputStream inStream  = new java.io.BufferedInputStream(new java.io.FileInputStream(inFile));
 		java.io.BufferedOutputStream outStream = new java.io.BufferedOutputStream(new java.io.FileOutputStream(outFile));
@@ -310,12 +315,48 @@ public class LzmaAlone
 		inStream.close();
 	}
 
+	public static long compress_decompress_details(String path, boolean compression) throws Exception {
+		System.out.println((compression ? "Compression:" : "Decompression:"));
+		java.io.File file = new java.io.File(path);
+		long fileSize = FileUtils.sizeOf(file);
+		long begin = System.nanoTime();
+
+		if(compression)
+			compressFile(path);
+		else
+			decompressFile(path);
+
+		long end = System.nanoTime();
+		long nanoseconds = end - begin;
+		double seconds = (double) TimeUnit.NANOSECONDS.toMillis(nanoseconds) / 1000;
+		long bytes_per_second = (long) (fileSize / seconds);
+
+		System.out.println("\t" + fileSize 			+ " bytes");
+		System.out.println("\t" + seconds 			+ " seconds");
+		System.out.println("\t" + bytes_per_second 	+ " b/s");
+
+		return bytes_per_second;
+	}
+
 	public static void main(String[] args) throws Exception
 	{
 		System.out.println("\nLZMA (Java) 4.61  2008-11-23\n");
 
-		compressFile();
+		long durationCompression = 0L;
+		long durationDecompression = 0L;
+		for(String path: CorpusSilesia.paths) {
+			String[] files = path.split("\\\\");
+			System.out.println("File: " + files[files.length - 1]);
+			durationCompression   = compress_decompress_details(path, true);
+			durationDecompression = compress_decompress_details(path, false);
+			System.out.println("\n\n");
+		}
 
-		decompressFile();
+		long averageDurationCompression = durationCompression / CorpusSilesia.paths.length;
+		long averageDurationDecompression = durationDecompression / CorpusSilesia.paths.length;
+		System.out.println("Compression of Corpus Silesia's files:\n\t" + averageDurationCompression + " b/s");
+		System.out.println("Decompression of Corpus Silesia's files:\n\t" + averageDurationDecompression + " b/s");
+
 	}
+
 }
