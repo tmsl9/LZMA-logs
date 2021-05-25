@@ -2,7 +2,7 @@ package SevenZip;
 
 import org.apache.commons.io.FileUtils;
 
-import java.util.ArrayList;
+import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
 public class LzmaAlone
@@ -256,6 +256,8 @@ public class LzmaAlone
 		return;
 	}*/
 
+	private static DecimalFormat df;
+
 	private static final String originalFile     = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test.txt";
 	private static final String compressedFile   = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test_comp";
 	private static final String decompressedFile = "C:\\Users\\tmsl9\\GitHub\\LZMA-logs\\lzma1900\\Java\\SevenZip\\TestFile\\test_decomp.txt";
@@ -314,47 +316,81 @@ public class LzmaAlone
 		inStream.close();
 	}
 
-	public static long compress_decompress_details(String path, boolean compression) throws Exception {
-		System.out.println((compression ? "Compression:" : "Decompression:"));
+	public static long sizeFile_bytes(String path){
 		java.io.File file = new java.io.File(path);
-		long fileSize = FileUtils.sizeOf(file);
+		return FileUtils.sizeOf(file);
+	}
+
+	public static float b_to_Mb(long bytes){
+		long MEGABYTE = 1024L * 1024L;
+		return (float) bytes / MEGABYTE;
+	}
+
+	public static double ns_to_s(long nanoseconds){
+		return (double) TimeUnit.NANOSECONDS.toMillis(nanoseconds) / 1000;
+	}
+
+	public static float[] compress_decompress_details(String path, long fileSize, boolean compression) throws Exception {
+		System.out.println((compression ? "Compression:" : "Decompression:"));
+
 		long begin = System.nanoTime();
 
-		if(compression)
+		if(compression) {
 			compressFile(path);
-		else
+		}else
 			decompressFile(path);
 
 		long end = System.nanoTime();
-		long nanoseconds = end - begin;
-		double seconds = (double) TimeUnit.NANOSECONDS.toMillis(nanoseconds) / 1000;
-		long bytes_per_second = (long) (fileSize / seconds);
 
-		System.out.println("\t" + fileSize 			+ " bytes");
-		System.out.println("\t" + seconds 			+ " seconds");
-		System.out.println("\t" + bytes_per_second 	+ " b/s");
+		long resultFileSize = sizeFile_bytes(compression ? CorpusSilesia.compressedFile(path) : CorpusSilesia.decompressedFile(path));
 
-		return bytes_per_second;
+		double seconds = ns_to_s(end - begin);
+		float Mb_per_s = (float) (b_to_Mb(fileSize) / seconds);
+
+		System.out.println("\tSize (" 	  + (compression ? "" : "de") + "comp): " + df.format(b_to_Mb(resultFileSize)) + " Mb");
+		System.out.println("\tTime: " 	  + seconds 				  + " seconds");
+		System.out.println("\tBit rate: " + df.format(Mb_per_s) 	  + " Mb/s");
+
+		float compressionRatio = .00F;
+
+		if(compression){
+			compressionRatio = (float) (fileSize / resultFileSize);
+			System.out.println("\tCompression ratio: " + compressionRatio + ":1 bps");
+		}
+
+		return new float[]{Mb_per_s, compressionRatio};
 	}
 
 	public static void main(String[] args) throws Exception
 	{
 		System.out.println("\nLZMA (Java) 4.61  2008-11-23\n");
 
-		long durationCompression = 0L;
-		long durationDecompression = 0L;
+		df = new DecimalFormat();
+		df.setMaximumFractionDigits(2);
+
+		float bitRateCompression = .00F;
+		float bitRateDecompression = .00F;
+		float compressionRatio = .00F;
 		for(String path: CorpusSilesia.paths) {
 			String[] files = path.split("\\\\");
 			System.out.println("File: " + files[files.length - 1]);
-			durationCompression   = compress_decompress_details(path, true);
-			durationDecompression = compress_decompress_details(path, false);
+			long fileSize = sizeFile_bytes(path);
+			System.out.println("Size: " 	+ df.format(b_to_Mb(fileSize)) 		+ " Mb");
+			float[] result_comp = compress_decompress_details(path, fileSize, true);
+			float[] result_decomp = compress_decompress_details(path, fileSize, false);
+			bitRateCompression += result_comp[0];
+			bitRateDecompression += result_decomp[0];
+			compressionRatio += result_comp[1];
 			System.out.println("\n\n");
 		}
 
-		long averageDurationCompression = durationCompression / CorpusSilesia.paths.length;
-		long averageDurationDecompression = durationDecompression / CorpusSilesia.paths.length;
-		System.out.println("Compression of Corpus Silesia's files:\n\t" + averageDurationCompression + " b/s");
-		System.out.println("Decompression of Corpus Silesia's files:\n\t" + averageDurationDecompression + " b/s");
+		float averageBitRateCompression = bitRateCompression / CorpusSilesia.paths.length;
+		float averageBitRateDecompression = bitRateDecompression / CorpusSilesia.paths.length;
+		float averageCompressionRatio = compressionRatio / CorpusSilesia.paths.length;
+		System.out.println("Overall:");
+		System.out.println("\tCompression bit rate: " + df.format(averageBitRateCompression) + " Mb/s");
+		System.out.println("\tDecompression bit rate: " + df.format(averageBitRateDecompression) + " Mb/s");
+		System.out.println("\tCompression ratio: " + df.format(averageCompressionRatio) + " bps");
 
 	}
 
