@@ -335,10 +335,7 @@ public class LzmaAlone
 
 		long begin = System.nanoTime();
 
-		if(compression) {
-			compressFile(path);
-		}else
-			decompressFile(path);
+		if(compression) compressFile(path); else decompressFile(path);
 
 		long end = System.nanoTime();
 
@@ -375,7 +372,7 @@ public class LzmaAlone
 			String[] files = path.split("\\\\");
 			System.out.println("File: " + files[files.length - 1]);
 			long fileSize = sizeFile_bytes(path);
-			System.out.println("Size: " 	+ df.format(b_to_Mb(fileSize)) 		+ " Mb");
+			System.out.println("Size: " + df.format(b_to_Mb(fileSize)) + " Mb");
 			float[] result_comp = compress_decompress_details(path, fileSize, true);
 			float[] result_decomp = compress_decompress_details(path, fileSize, false);
 			bitRateCompression += result_comp[0];
@@ -388,9 +385,9 @@ public class LzmaAlone
 		float averageBitRateDecompression = bitRateDecompression / CorpusSilesia.paths.length;
 		float averageCompressionRatio = compressionRatio / CorpusSilesia.paths.length;
 		System.out.println("Overall:");
-		System.out.println("\tCompression bit rate: " + df.format(averageBitRateCompression) + " Mb/s");
+		System.out.println("\tCompression bit rate: " 	+ df.format(averageBitRateCompression)   + " Mb/s");
 		System.out.println("\tDecompression bit rate: " + df.format(averageBitRateDecompression) + " Mb/s");
-		System.out.println("\tCompression ratio: " + df.format(averageCompressionRatio) + " bps");
+		System.out.println("\tCompression ratio: " 		+ df.format(averageCompressionRatio) 	 + " bps");
 
 	}
 
